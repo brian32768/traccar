@@ -1,0 +1,62 @@
+version: '3.6'
+services:
+  traccar:
+    container_name: traccar
+    image: "traccar/traccar:latest"
+    env_file: .env
+    environment:
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      VIRTUAL_PORT: 8082
+      NETWORK_ACCESS: internal
+      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_MAIL: ${MY_EMAIL}
+    volumes:
+      - traccar_conf:/opt/traccar/conf
+      - traccar_logs:/opt/traccar/logs
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - "8082:8082"
+      - "5055:5055"     # cellphones
+      - "5055:5055/udp" # cellphones
+    expose:
+      - "8082" # HTTP is here and will be proxied for outside HTTPS access
+#     - "5000-5150"
+#     - "5000-5150/udp"
+    networks:
+      - traccar_net
+      proxy_net:
+        aliases:
+          - traccar
+
+  traccar-mysql:
+    container_name: traccar-mysql
+    image: "mysql:5.6.30"
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - traccar_database:/var/lib/mysql
+    expose:
+      - "3306"
+    networks:
+      - traccar_net
+    restart: unless-stopped
+
+volumes:
+  traccar_conf:
+    name: traccar_conf
+  traccar_logs:
+    name: traccar_logs
+  traccar_database:
+    name: traccar_database
+
+networks:
+  proxy_net:
+    name: proxy_net
+    external: true
+  traccar_net:
+    name: traccar_net
+
