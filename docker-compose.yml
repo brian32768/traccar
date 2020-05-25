@@ -2,6 +2,8 @@ version: '3.6'
 services:
   traccar:
     container_name: traccar
+    depends_on:
+      - traccar-mysql
     image: "traccar/traccar:latest"
     env_file: .env
     environment:
@@ -24,10 +26,10 @@ services:
 #     - "5000-5150"
 #     - "5000-5150/udp"
     networks:
-      - traccar_net
       proxy_net:
         aliases:
           - traccar
+      traccar_net:
 
   traccar-mysql:
     container_name: traccar-mysql
@@ -36,13 +38,14 @@ services:
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - traccar_database:/var/lib/mysql
     expose:
       - "3306"
     networks:
-      - traccar_net
+      traccar_net:
     restart: unless-stopped
 
 volumes:
