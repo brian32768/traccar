@@ -4,15 +4,14 @@ the location of two smart phones.
 https://hub.docker.com/r/traccar/traccar
 
 You have to set up an XML file that will be traccar.xml in the config volume.
-I keep a copy of the file here but currently not checked into git.
+I have sample copies here, you can use H2 or MySQL. There is a password
+embedded in there that you need to change for your set up.
 
 You edit it per instructions here:
 https://www.traccar.org/configuration-file/
 
-
-I just converted from using the default H2 database, which I know nothing about
-to use MySQL, which I actually understand.
-
+I included the h2 file to allow using the default H2 database, which I know nothing about.
+I made the traccar_mysql.xml file to use MySQL, which I actually understand.
 
 == Use OpenCage Geocoder
 
@@ -62,3 +61,7 @@ Server:
   46.18, -123.83 10
 
 Users: Julie, Brian
+
+## Deploy
+
+    docker stack deploy -c docker-compose.yml traccar

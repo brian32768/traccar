@@ -1,17 +1,10 @@
 version: '3.6'
 services:
   traccar:
-    container_name: traccar
     depends_on:
-      - traccar-mysql
+      - mysql
     image: "traccar/traccar:latest"
-    env_file: .env
-    environment:
-      VIRTUAL_HOST: ${VIRTUAL_HOST}
-      VIRTUAL_PORT: 8082
-      NETWORK_ACCESS: internal
-      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
-      LETSENCRYPT_MAIL: ${MY_EMAIL}
+    env_file: traccar.env
     volumes:
       - traccar_conf:/opt/traccar/conf
       - traccar_logs:/opt/traccar/logs
@@ -21,32 +14,29 @@ services:
       - "8082:8082"
       - "5055:5055"     # cellphones
       - "5055:5055/udp" # cellphones
-    expose:
-      - "8082" # HTTP is here and will be proxied for outside HTTPS access
-#     - "5000-5150"
-#     - "5000-5150/udp"
     networks:
-      proxy_net:
-        aliases:
-          - traccar
-      traccar_net:
+      - traccar_net
+    deploy:
+      replicas: 1
+      update_config:
+        order: 'stop-first'
 
-  traccar-mysql:
-    container_name: traccar-mysql
+  # Only traccar needs to see port 3306 and
+  # that's visible already on traccar_net
+  # so I don't need 'ports' or 'expose'
+  # 
+  # NB Hostname for traccar service will be "mysql". (Sort of painfully obvious now.)
+  mysql:
     image: "mysql:5.6.30"
-    env_file: .env
-    environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    env_file: mysql.env
     volumes:
       - traccar_database:/var/lib/mysql
-    expose:
-      - "3306"
     networks:
-      traccar_net:
-    restart: unless-stopped
+      - traccar_net
+    deploy:
+      replicas: 1
+      update_config:
+        order: 'stop-first'
 
 volumes:
   traccar_conf:
@@ -57,9 +47,5 @@ volumes:
     name: traccar_database
 
 networks:
-  proxy_net:
-    name: proxy_net
-    external: true
   traccar_net:
-    name: traccar_net
-
+    external: true
