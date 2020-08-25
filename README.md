@@ -12,6 +12,8 @@ https://www.traccar.org/configuration-file/
 
 I included the h2 file to allow using the default H2 database, which I know nothing about.
 I made the traccar_mysql.xml file to use MySQL, which I actually understand.
+Then I switched back to using H2, because I got tired of fighting with the XML file
+when migrating to SWARM.
 
 == Use OpenCage Geocoder
 
@@ -65,3 +67,4 @@ Users: Julie, Brian
 ## Deploy
 
     docker stack deploy -c docker-compose.yml traccar
+

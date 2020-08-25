@@ -1,13 +1,15 @@
-version: '3.6'
+version: '3.7'
 services:
   traccar:
-    depends_on:
-      - mysql
     image: "traccar/traccar:latest"
-    env_file: traccar.env
+    environment:
+      VIRTUAL_HOST: traccar.wildsong.biz
+      VIRTUAL_PORT: 8082
+      LETSENCRYPT_HOST: traccar.wildsong.biz
+      LETSENCRYPT_MAIL: brian@wildsong.biz
     volumes:
-      - traccar_conf:/opt/traccar/conf
-      - traccar_logs:/opt/traccar/logs
+      - ./traccar_h2.xml:/opt/traccar/conf/traccar.xml
+      - logs:/opt/traccar/logs
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     ports:
@@ -15,37 +17,23 @@ services:
       - "5055:5055"     # cellphones
       - "5055:5055/udp" # cellphones
     networks:
-      - traccar_net
+      - proxy_net
     deploy:
-      replicas: 1
+      mode: global
       update_config:
         order: 'stop-first'
-
-  # Only traccar needs to see port 3306 and
-  # that's visible already on traccar_net
-  # so I don't need 'ports' or 'expose'
-  # 
-  # NB Hostname for traccar service will be "mysql". (Sort of painfully obvious now.)
-  mysql:
-    image: "mysql:5.6.30"
-    env_file: mysql.env
-    volumes:
-      - traccar_database:/var/lib/mysql
-    networks:
-      - traccar_net
-    deploy:
-      replicas: 1
-      update_config:
-        order: 'stop-first'
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
 volumes:
-  traccar_conf:
-    name: traccar_conf
-  traccar_logs:
+  logs:
     name: traccar_logs
-  traccar_database:
-    name: traccar_database
 
 networks:
-  traccar_net:
+  proxy_net:
+    name: proxy_net
     external: true
+    
