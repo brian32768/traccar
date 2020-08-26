@@ -1,19 +1,20 @@
 I am using Traccar as an integration in Home Assistant to track
-the location of two smart phones.
+the location of two smart phones. I usually use a MySQL database
+to hold the data.
 
 https://hub.docker.com/r/traccar/traccar
 
-You have to set up an XML file that will be traccar.xml in the config volume.
-I have sample copies here, you can use H2 or MySQL. There is a password
-embedded in there that you need to change for your set up.
+== Configuration
 
-You edit it per instructions here:
+Set up an XML file that will contain secrets.
+I have sample copies here, you can use H2 or MySQL but this project uses MySQL.
+There is a password embedded in the mysql version that you need to change for your set up.
+
+You also need to put the same secrets into "mysql_root_password" and
+"mysql_user_password" so that the MySQL container can use them.
+
+You edit traccar XML  per instructions here:
 https://www.traccar.org/configuration-file/
-
-I included the h2 file to allow using the default H2 database, which I
-know nothing about.  I made the traccar_mysql.xml and
-traccar_mysql_with_passwords.xml files to use MySQL, which I actually
-understand.  H2 works but hey, I use MySQL.
 
 == Use OpenCage Geocoder
 
@@ -22,26 +23,7 @@ understand.  H2 works but hey, I use MySQL.
     <entry key='geocoder.url'>http://api.opencagedata.com/geocode/v1</entry>
     <entry key='geocoder.key'>API KEY GOES HERE</entry>
 
-== Use MySQL
-
-Using MySQL instead of H2- if you set the variables correctly in .env then on the first
-startup, the database and user will be created in the mysql container. This means the
-container will restart itself once. The traccar container depends on the mysql container
-so it will delay starting until mysql is ready. 
-
-   <entry key='database.driver'>com.mysql.jdbc.Driver</entry>
-   <entry key='database.url'>jdbc:mysql://traccar-mysql:3306/traccar_database?serverTimezone=UTC&amp;useSSL=false&amp;allowMultiQueries=true&amp;autoReconnect=true&amp;useUnicode=yes&amp;characterEncoding=UTF-8&amp;sessionVariables=sql_mode=''</entry>
-   <entry key='database.user'>traccar_user</entry>
-   <entry key='database.password'>[PASSWORD]</entry>
-
-== Default H2 settings
-
-    <entry key='database.driver'>org.h2.Driver</entry>
-    <entry key='database.url'>jdbc:h2:./data/database</entry>
-    <entry key='database.user'>sa</entry>
-    <entry key='database.password'></entry>
-
-== Set up notes
+== Other set up notes
 
 When creating devices for phones, set the map icon in "Category"
 
@@ -64,11 +46,6 @@ Server:
 
 Users: Julie, Brian
 
-## TODO
-
-Migrate to secrets and configs.
-
 ## Deploy
 
     docker stack deploy -c docker-compose.yml traccar
-
