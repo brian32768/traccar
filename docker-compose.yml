@@ -1,23 +1,68 @@
 version: '3.7'
+
+volumes:
+  database:
+    name: traccar_database
+
+networks:
+  proxy_net:
+    name: proxy_net
+    external: true
+  mysql_net:
+    name: traccar_mysql_net
+
 services:
   traccar:
-    image: "traccar/traccar:latest"
+    image: wildsong/traccar:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.traccar
     environment:
       VIRTUAL_HOST: traccar.wildsong.biz
       VIRTUAL_PORT: 8082
       LETSENCRYPT_HOST: traccar.wildsong.biz
       LETSENCRYPT_MAIL: brian@wildsong.biz
     volumes:
-      - ./traccar_h2.xml:/opt/traccar/conf/traccar.xml
-      - logs:/opt/traccar/logs
+      # Move this file into a "secret"
+      - ./traccar_mysql_with_password.xml:/opt/traccar/conf/traccar.xml
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     ports:
-      - "8082:8082"
+      - "8082:8082"     # Port 8082 is defined in traccar.xml
       - "5055:5055"     # cellphones
       - "5055:5055/udp" # cellphones
     networks:
       - proxy_net
+      - mysql_net
+    deploy:
+      mode: global
+      update_config:
+        order: 'stop-first'
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 10
+        window: 30s
+
+
+  # Only traccar needs to see port 3306 and
+  # that's visible already on traccar_net
+  # so I don't need 'ports' or 'expose'
+  # 
+  # NB Hostname for traccar service will be "mysql". (Sort of painfully obvious now.)
+  mysql:
+    image: "mysql:5.6.30"
+    environment:
+      # see also mysql.env
+      MYSQL_DATABASE: traccar_database
+      MYSQL_USER: traccar_user
+      # move these into a "secret" along with traccar.xml
+      MYSQL_PASSWORD: fragrant123
+      MYSQL_ROOT_PASSWORD: lilypond123
+    volumes:
+      - database:/var/lib/mysql
+    networks:
+      - mysql_net
     deploy:
       mode: global
       update_config:
@@ -27,13 +72,3 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-
-volumes:
-  logs:
-    name: traccar_logs
-
-networks:
-  proxy_net:
-    name: proxy_net
-    external: true
-    

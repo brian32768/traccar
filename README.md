@@ -10,10 +10,10 @@ embedded in there that you need to change for your set up.
 You edit it per instructions here:
 https://www.traccar.org/configuration-file/
 
-I included the h2 file to allow using the default H2 database, which I know nothing about.
-I made the traccar_mysql.xml file to use MySQL, which I actually understand.
-Then I switched back to using H2, because I got tired of fighting with the XML file
-when migrating to SWARM.
+I included the h2 file to allow using the default H2 database, which I
+know nothing about.  I made the traccar_mysql.xml and
+traccar_mysql_with_passwords.xml files to use MySQL, which I actually
+understand.  H2 works but hey, I use MySQL.
 
 == Use OpenCage Geocoder
 
@@ -63,6 +63,10 @@ Server:
   46.18, -123.83 10
 
 Users: Julie, Brian
+
+## TODO
+
+Migrate to secrets and configs.
 
 ## Deploy
 

@@ -1,0 +1,5 @@
+FROM traccar/traccar:4.10-alpine
+
+# This is to fix the problem with running in Swarm mode
+# and using nginx-proxy. It would show the upstream as down.
+EXPOSE 8082
